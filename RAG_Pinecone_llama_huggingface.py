@@ -19,8 +19,8 @@ from pinecone import ServerlessSpec
 load_dotenv()
 
 
-TIP_FILE = "C:/Users/zhuan/Desktop/Cornell Tech/School Work/Yelp RAG/filtered_tips_dense.csv"
-REVIEW_FILE = "C:/Users/zhuan/Desktop/Cornell Tech/School Work/Yelp RAG/filtered_reviews_dense.csv"
+TIP_FILE = "./data/filtered_tips_dense.csv"
+REVIEW_FILE = "./data/filtered_reviews_dense.csv"
 
 class YelpExpert():
 
