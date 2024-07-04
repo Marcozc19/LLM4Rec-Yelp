@@ -34,8 +34,8 @@ class YelpExpert():
         self.review_summary = self.get_summary(REVIEW_FILE)
         
         self.embedding, self.embedding_shape = self.create_embed(self.tip_summary, self.review_summary)
-        # self.index = self.init_pinecone(self.embedding_shape)
-        # self.vector_store = self.create_vector(self.embedding, self.embedding_shape)
+        self.index = self.init_pinecone(self.embedding_shape)
+        self.vector_store = self.create_vector(self.embedding, self.embedding_shape)
 
         self.conversation_history = []
         self.conversation_tokens = 0
