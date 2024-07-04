@@ -1,0 +1,6 @@
+streamlit
+altair==4
+openai
+numpy
+tiktoken
+langchain

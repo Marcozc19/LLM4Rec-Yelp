@@ -1,0 +1,33 @@
+.env
+/venv
+/__pycache__
+
+# Databases
+*.db
+*.sqlite
+
+# Logs
+*.log
+
+# Python
+*.pyc
+*.pyo
+
+# Virtual environments
+.venv
+env/
+venv/
+
+# Python package
+*.egg-info
+dist/
+build/
+
+# MacOS
+.DS_Store
+
+# Windows
+thumbs.db
+ehthumbs.db
+
+/data
