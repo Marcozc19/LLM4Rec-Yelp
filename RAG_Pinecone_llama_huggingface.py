@@ -14,6 +14,8 @@ from langchain_community.vectorstores import FAISS
 from langchain.schema.document import Document
 from pinecone import Pinecone
 from pinecone import ServerlessSpec
+import torch
+
 
 # load env
 load_dotenv()
@@ -21,6 +23,7 @@ load_dotenv()
 
 TIP_FILE = "./data/filtered_tips_dense.csv"
 REVIEW_FILE = "./data/filtered_reviews_dense.csv"
+DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 class YelpExpert():
 
@@ -75,19 +78,20 @@ class YelpExpert():
 
         print("length of split data: ",len(split_data), " length of each chunk: ", len(split_data[0].page_content))
         
-        split_data = split_data
-        embedding_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+        split_data = split_data.to(DEVICE)
+        embedding_model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2", device=DEVICE)
+
 
         embeddings = []
         for doc in tqdm.tqdm(split_data, desc="Embedding documents"):
-            embedding = embedding_model.embed_documents([doc.page_content])
-            embeddings.append(embedding[0])
+            embedding = embedding_model.encode([doc.page_content], convert_to_tensor=True, device=DEVICE)
+            embeddings.append(embedding[0].cpu().detach().numpy())
         
         embeddings = np.array(embeddings)
-        embeddings_str = [','.join(map(str, embedding)) for embedding in embeddings]
-        with open('embeddings.txt', 'w') as f:
-            for embedding_str in embeddings_str:
-                f.write(embedding_str + '\n')
+        # embeddings_str = [','.join(map(str, embedding)) for embedding in embeddings]
+        # with open('embeddings.txt', 'w') as f:
+        #     for embedding_str in embeddings_str:
+        #         f.write(embedding_str + '\n')
         print("Finished embedding")
         return embeddings, embeddings.shape
     
