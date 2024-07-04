@@ -84,7 +84,7 @@ class YelpExpert():
     def create_embed(self, tip_summary, review_summary):
         '''create vector store where each entry is a line of review or tip'''
         print("Creating embedding...")
-        batch_size=256
+        batch_size=512
 
         split_data = [Document(page_content=x) for x in tip_summary + review_summary]
         
