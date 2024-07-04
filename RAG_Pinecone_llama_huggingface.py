@@ -78,7 +78,7 @@ class YelpExpert():
 
         print("length of split data: ",len(split_data), " length of each chunk: ", len(split_data[0].page_content))
         
-        split_data = split_data.to(DEVICE)
+        # split_data = split_data.to(DEVICE)
         embedding_model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2", device=DEVICE)
 
 
