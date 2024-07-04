@@ -97,7 +97,7 @@ class YelpExpert():
     
     def create_vector(self, embedding, shape):
         print("Creating vector store...")
-        batch_size = 1024
+        batch_size = 10000
 
         ids = [str(i) for i in range(shape[0])]
 
