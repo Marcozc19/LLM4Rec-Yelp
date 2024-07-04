@@ -15,7 +15,7 @@ from langchain.schema.document import Document
 from pinecone import Pinecone
 from pinecone import ServerlessSpec
 import torch
-
+from torch.utils.data import DataLoader, Dataset
 
 # load env
 load_dotenv()
@@ -24,6 +24,17 @@ load_dotenv()
 TIP_FILE = "./data/filtered_tips_dense.csv"
 REVIEW_FILE = "./data/filtered_reviews_dense.csv"
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
+
+class TextDataset(Dataset):
+    def __init__(self, documents):
+        self.documents = documents
+
+    def __len__(self):
+        return len(self.documents)
+
+    def __getitem__(self, idx):
+        return self.documents[idx]
+
 
 class YelpExpert():
 
@@ -60,7 +71,6 @@ class YelpExpert():
             )
 
         return pc.Index(index_name)
-
     
     def get_summary(self, file_path):
         output = []
@@ -74,30 +84,52 @@ class YelpExpert():
     def create_embed(self, tip_summary, review_summary):
         '''create vector store where each entry is a line of review or tip'''
         print("Creating embedding...")
-        split_data = [Document(page_content=x) for x in tip_summary+review_summary]
+        batch_size=32
 
-        print("length of split data: ",len(split_data), " length of each chunk: ", len(split_data[0].page_content))
+        split_data = [Document(page_content=x) for x in tip_summary + review_summary]
         
-        # split_data = split_data.to(DEVICE)
+        print("Length of split data: ", len(split_data), " Length of each chunk: ", len(split_data[0].page_content))
+        
         embedding_model = SentenceTransformer("sentence-transformers/all-mpnet-base-v2", device=DEVICE)
-
-
+        
+        dataset = TextDataset([doc.page_content for doc in split_data])
+        dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
+        
         embeddings = []
-        for doc in tqdm.tqdm(split_data, desc="Embedding documents"):
-            embedding = embedding_model.encode([doc.page_content], convert_to_tensor=True, device=DEVICE)
-            embeddings.append(embedding[0].cpu().detach().numpy())
+        for batch in tqdm.tqdm(dataloader, desc="Embedding documents"):
+            with torch.no_grad():
+                batch_embeddings = embedding_model.encode(batch, convert_to_tensor=True, device=DEVICE)
+            embeddings.extend(batch_embeddings.cpu().detach().numpy())
         
         embeddings = np.array(embeddings)
-        # embeddings_str = [','.join(map(str, embedding)) for embedding in embeddings]
-        # with open('embeddings.txt', 'w') as f:
-        #     for embedding_str in embeddings_str:
-        #         f.write(embedding_str + '\n')
         print("Finished embedding")
         return embeddings, embeddings.shape
+
+        # print("Creating embedding...")
+        # split_data = [Document(page_content=x) for x in tip_summary+review_summary]
+
+        # print("length of split data: ",len(split_data), " length of each chunk: ", len(split_data[0].page_content))
+        
+        # # split_data = split_data.to(DEVICE)
+        # embedding_model = SentenceTransformer("sentence-transformers/all-mpnet-base-v2", device=DEVICE)
+
+
+        # embeddings = []
+        # for doc in tqdm.tqdm(split_data, desc="Embedding documents"):
+        #     embedding = embedding_model.encode([doc.page_content], convert_to_tensor=True, device=DEVICE)
+        #     embeddings.append(embedding[0].cpu().detach().numpy())
+        
+        # embeddings = np.array(embeddings)
+        # # embeddings_str = [','.join(map(str, embedding)) for embedding in embeddings]
+        # # with open('embeddings.txt', 'w') as f:
+        # #     for embedding_str in embeddings_str:
+        # #         f.write(embedding_str + '\n')
+        # print("Finished embedding")
+        # return embeddings, embeddings.shape
     
     def create_vector(self, embedding, shape):
         print("Creating vector store...")
-        batch_size = 10000
+        batch_size = 256
 
         ids = [str(i) for i in range(shape[0])]
 
