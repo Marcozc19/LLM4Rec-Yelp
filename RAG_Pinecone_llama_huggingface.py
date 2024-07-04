@@ -71,16 +71,15 @@ class YelpExpert():
     def create_embed(self, tip_summary, review_summary):
         '''create vector store where each entry is a line of review or tip'''
         print("Creating embedding...")
-        split_data = [Document(page_content=x) for x in tip_summary]
+        split_data = [Document(page_content=x) for x in tip_summary+review_summary]
 
         print("length of split data: ",len(split_data), " length of each chunk: ", len(split_data[0].page_content))
         
-        split_data = split_data[:100]
+        split_data = split_data
         embedding_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
         embeddings = []
         for doc in tqdm.tqdm(split_data, desc="Embedding documents"):
-            print(doc.page_content)
             embedding = embedding_model.embed_documents([doc.page_content])
             embeddings.append(embedding[0])
         

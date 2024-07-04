@@ -4,3 +4,7 @@ openai
 numpy
 tiktoken
 langchain
+langchain_community
+sentence_transformers
+dotenv
+pinecone
